@@ -12,8 +12,7 @@ package ubernova.universe.backgrounds
 import java.awt.Color
 import java.awt.Graphics
 import java.util.Random
-
-import scala.math
+import ubernova.universe.geometry.Vector2D
 
 class Starfield( ) {
   private val maxStars = 200;
@@ -23,18 +22,18 @@ class Starfield( ) {
     x*x*499 + y*487;
   }
 
-  private def drawTile( g:Graphics, hash:Long, x:Int, y:Int, width:Int, height:Int ) = {
+  private def drawTile( g:Graphics, hash:Long, x:Double, y:Double, width:Int, height:Int ) = {
     val randomiser:Random = new Random( hash );
 
     for ( i:Int <- 0 to maxStars ) {
-      val starX = randomiser.nextInt( width );
-      val starY = randomiser.nextInt( height );
+      val starX = randomiser.nextInt( width )  - x;
+      val starY = randomiser.nextInt( height ) - y;
 
       drawStar( g, starX, starY, randomiser );
-    }
+		}
   }
 
-  private def drawStar( g:Graphics, x:Int, y:Int, randomiser:Random ) = {
+  private def drawStar( g:Graphics, x:Double, y:Double, randomiser:Random ) = {
     val brightness = randomiser.nextInt( minBrightness );
     val colour     = randomiser.nextInt( 255-minBrightness );
 
@@ -50,44 +49,30 @@ class Starfield( ) {
     val size:Int = randomiser.nextInt( 3 ) + 1;
 
     g.setColor( new Color( brightness + red, brightness, brightness + blue ) );
-    g.fillOval( x, y, size, size );
+    g.fillOval( x.asInstanceOf[Int], y.asInstanceOf[Int], size, size );
   }
 
-  def render( g:Graphics, x:Int, y:Int, width:Int, height:Int ) = {
-    val left   = x;
-    val right  = x+width;
-    val top    = y;
-    val bottom = y+height;
+  def render( g:Graphics, scroll:Vector2D, width:Int, height:Int ) = {
+    
+    val left   = scroll.x;
+    val right  = scroll.x + width;
+    val top    = scroll.y;
+    val bottom = scroll.y + height;
 
-    val tileX1:Int = math.floor( left/height ).asInstanceOf[Int];
-    val tileY1:Int = math.floor( top/height ).asInstanceOf[Int];
+    val tiles = List( (left, top), (right, top), (left, bottom), (right, bottom) );
 
+    for ( tile <- tiles ) {
+      val ( tx, ty ) = tile;
 
-    val tileX2:Int = math.floor( right/width ).asInstanceOf[Int];
-		val tileY2:Int = math.floor( top/height ).asInstanceOf[Int];
-
-		val tileX3:Int = math.floor( left/width ).asInstanceOf[Int];
-		val tileY3:Int = math.floor( bottom/height ).asInstanceOf[Int];
-
-		val tileX4:Int = math.floor( right/width ).asInstanceOf[Int];
-		val tileY4:Int = math.floor( bottom/height ).asInstanceOf[Int];
-
-		val screenX1:Int = tileX1 * width  - x;
-		val screenY1:Int = tileY1 * height - y;
-
-		val screenX2:Int = tileX2 * width  - x;
-		val screenY2:Int = tileY2 * height - y;
-
-		val screenX3:Int = tileX3 * width  - x;
-		val screenY3:Int = tileY3 * height - y;
-
-		val screenX4:Int = tileX4 * width  - x;
-		val screenY4:Int = tileY4 * height - y;
-
-    drawTile( g, hashForTile( tileX1, tileY1 ), screenX1, screenY1, width, height );
-    drawTile( g, hashForTile( tileX2, tileY2 ), screenX2, screenY2, width, height );
-    drawTile( g, hashForTile( tileX3, tileY3 ), screenX3, screenY3, width, height );
-    drawTile( g, hashForTile( tileX4, tileY4 ), screenX4, screenY4, width, height );
+      val tileX = math.floor(tx/width);
+      val tileY = math.floor(ty/height);
+      
+      val hash    = hashForTile( tileX.asInstanceOf[Int], tileY.asInstanceOf[Int] );
+      val screenX = tileX * width  - scroll.x;
+      val screenY = tileY * height - scroll.y;
+      
+      drawTile( g, hash, screenX, screenY, width, height );
+    }
 
   }
 

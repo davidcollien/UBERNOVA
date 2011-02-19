@@ -23,7 +23,7 @@ class SpaceView( playersShip:Ship ) extends Canvas {
 
   private var ships:HashSet[ShipRender] = new HashSet;
   private var dimension:Dimension = new Dimension( 0, 0 );
-  private var stars:Starfield = new Starfield;
+  private var stars:Starfield = new Starfield( );
 
   def setPlayerShip( ship:Ship ) = {
     this.playerShip = ship;
@@ -45,7 +45,7 @@ class SpaceView( playersShip:Ship ) extends Canvas {
     offG.setColor( new Color( 0, 0, 0 ) );
     offG.fillRect( 0, 0, dimension.width, dimension.height );
 
-    stars.render( offG, scroll.x.asInstanceOf[Int], scroll.y.asInstanceOf[Int], dimension.width, dimension.height );
+    stars.render( offG, scroll, dimension.width, dimension.height );
 
     val midX = dimension.width/2;
     val midY = dimension.height/2;
