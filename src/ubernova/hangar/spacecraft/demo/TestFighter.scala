@@ -29,7 +29,7 @@ class TestFighter( pos:Vector2D, facing:Double ) extends Ship( pos, facing, null
 		}
 		
 		def getThrustVector( ):Vector2D = {
-			new Vector2D( 0, 0.002 );
+			new Vector2D( 0, 0.02 );
 		}
 
 		def getOffsetVector( ):Vector2D = {
@@ -54,7 +54,7 @@ class TestFighter( pos:Vector2D, facing:Double ) extends Ship( pos, facing, null
 		}
 		
 		def getThrustVector( ):Vector2D = {
-			new Vector2D( 0, 0.002 );
+			new Vector2D( 0, 0.02 );
 		}
 
 		def getOffsetVector( ):Vector2D = {
@@ -79,7 +79,7 @@ class TestFighter( pos:Vector2D, facing:Double ) extends Ship( pos, facing, null
 		}
 		
 		def getThrustVector( ):Vector2D = {
-			new Vector2D( 0, -0.005 );
+			new Vector2D( 0, -0.05 );
 		}
 
 		def getOffsetVector( ):Vector2D = {
@@ -104,7 +104,7 @@ class TestFighter( pos:Vector2D, facing:Double ) extends Ship( pos, facing, null
 		}
 		
 		def getThrustVector( ):Vector2D = {
-			new Vector2D( 0, 0.005 );
+			new Vector2D( 0, 0.05 );
 		}
 
 		def getOffsetVector( ):Vector2D = {
@@ -129,11 +129,61 @@ class TestFighter( pos:Vector2D, facing:Double ) extends Ship( pos, facing, null
 		}
 		
 		def getThrustVector( ):Vector2D = {
-			new Vector2D( 0, 0.005 );
+			new Vector2D( 0, 0.05 );
 		}
 
 		def getOffsetVector( ):Vector2D = {
 			new Vector2D( 9, 52 );
+		}
+
+		def getMass( ):Double = {
+			1.0;
+		}
+	};
+
+  val sideRightThruster = new Thruster( ) {
+		private var isActivated:Boolean = false;
+
+
+		def getActivated( ):Boolean = {
+			isActivated;
+		}
+
+		def setActivated( activated:Boolean ) = {
+			this.isActivated = activated;
+		}
+
+		def getThrustVector( ):Vector2D = {
+			new Vector2D( 0.03, 0 );
+		}
+
+		def getOffsetVector( ):Vector2D = {
+			new Vector2D( 14, 0 );
+		}
+
+		def getMass( ):Double = {
+			1.0;
+		}
+	};
+
+  val sideLeftThruster = new Thruster( ) {
+		private var isActivated:Boolean = false;
+
+
+		def getActivated( ):Boolean = {
+			isActivated;
+		}
+
+		def setActivated( activated:Boolean ) = {
+			this.isActivated = activated;
+		}
+
+		def getThrustVector( ):Vector2D = {
+			new Vector2D( -0.03, 0 );
+		}
+
+		def getOffsetVector( ):Vector2D = {
+			new Vector2D( -14, 0 );
 		}
 
 		def getMass( ):Double = {
@@ -147,5 +197,7 @@ class TestFighter( pos:Vector2D, facing:Double ) extends Ship( pos, facing, null
 	this.bindKey( KeyEvent.VK_S, revThruster );
 	this.bindKey( KeyEvent.VK_W, leftThruster );
 	this.bindKey( KeyEvent.VK_W, rightThruster );
+	this.bindKey( KeyEvent.VK_Q, sideRightThruster );
+	this.bindKey( KeyEvent.VK_E, sideLeftThruster );
 		
 }

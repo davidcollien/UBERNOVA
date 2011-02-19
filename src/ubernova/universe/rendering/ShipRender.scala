@@ -2,8 +2,9 @@ package ubernova.universe.rendering
 
 import ubernova.hangar.spacecraft.Ship
 import ubernova.universe.geometry.{Vector2D, ShipGeometry}
-import java.awt.{Graphics2D, Color}
-
+import java.awt.{AlphaComposite, Graphics2D, Color}
+import rendering.MotionBlurOp
+import java.awt.image.{Raster, BufferedImage}
 
 /**
  * Author: David Collien
@@ -16,39 +17,94 @@ import java.awt.{Graphics2D, Color}
 
 class ShipRender( shipToRender:Ship ) {
   var ship:Ship = shipToRender;
+  var rotatedImg:BufferedImage = null;
+  var blurImg:BufferedImage = null;
+  var thrusterImg:BufferedImage = null;
 
+  var cWidth:Int  = 0;
+  var cHeight:Int = 0;
+
+  refresh( );
+
+  
+  def refresh( ) = {
+    rotatedImg = new BufferedImage( ship.geometry.image.getWidth( null )*2, ship.geometry.image.getHeight( null )*2, BufferedImage.TYPE_INT_ARGB );
+    cWidth = rotatedImg.getWidth;
+    cHeight = rotatedImg.getHeight;
+
+    blurImg = new BufferedImage( cWidth, cHeight, BufferedImage.TYPE_INT_ARGB );
+    thrusterImg = new BufferedImage( cWidth, cHeight, BufferedImage.TYPE_INT_ARGB );
+
+  }
+  
   def update( ) = {
     this.ship.update( );
   }
 
-  def render( g:Graphics2D, offsetX:Int, offsetY:Int ) = {
+  def render( g:Graphics2D, offsetX:Double, offsetY:Double ) = {
     
     val shipGeometry:ShipGeometry = shipToRender.geometry;
     val centreOfMass = shipGeometry.getCentreOfMass( );
 
-    ImageOperations.paintRotated( g,
-      shipGeometry.image,
-      ship.facingDirection,
-      ship.position.x.asInstanceOf[Int] + offsetX,
-      ship.position.y.asInstanceOf[Int] + offsetY,
-      centreOfMass.x.asInstanceOf[Int],
-      centreOfMass.y.asInstanceOf[Int] );
 
+
+
+    val speedRatio = ship.velocity.magnitude / ship.maxSpeed;
+
+    val thrusterG = thrusterImg.getGraphics;
+    thrusterG.clearRect( 0, 0, cWidth, cHeight );
+    
 		for ( thruster <- this.ship.thrusters ) {
 			if ( thruster.getActivated( ) ) {
 
-				g.setColor( Color.WHITE );
-				val thrusterPos:Vector2D = (thruster.getOffsetVector rotatedBy ship.facingDirection) + ship.position;
+				thrusterG.setColor( Color.WHITE );
+				val thrusterPos:Vector2D = (thruster.getOffsetVector rotatedBy ship.facingDirection);
 
 				ImageOperations.drawThruster(
-          g,
+          thrusterG.asInstanceOf[Graphics2D],
           thruster.getThrustVector( ) rotatedBy ship.facingDirection,
-          thrusterPos.x.asInstanceOf[Int] + offsetX ,
-          thrusterPos.y.asInstanceOf[Int] + offsetY,
-          5000 );
+          (cWidth/2 + thrusterPos.x).toInt,
+          (cHeight/2 + thrusterPos.y).toInt,
+          500 );
 
 				thruster.setActivated( false );
 			}
 		}
+
+    val thrusterBlur:MotionBlurOp = new MotionBlurOp( 0, 0, 0, 0.2.toFloat );
+    thrusterBlur.filter( thrusterImg, thrusterImg );
+
+
+    rotatedImg.getGraphics.drawImage( thrusterImg,
+      0,
+      0,
+      null );
+      
+
+    
+    ImageOperations.paintRotated( rotatedImg.getGraphics,
+      shipGeometry.image,
+      ship.facingDirection,
+      cWidth/2,
+      cHeight/2,
+      centreOfMass.x.toInt,
+      centreOfMass.y.toInt );
+
+    val motionBlurOp:MotionBlurOp = new MotionBlurOp( 10, -ship.velocity.angleOf.toFloat, 0, 0 );
+    motionBlurOp.filter( rotatedImg, blurImg );
+
+    val composite:AlphaComposite = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, speedRatio.toFloat );
+
+    val prevComposite = g.getComposite( );
+
+    val imgX = ship.position.x + offsetX - cWidth/2;
+    val imgY = ship.position.y + offsetY - cHeight/2;
+
+    g.drawImage( rotatedImg, imgX.toInt, imgY.toInt, null );
+    g.setComposite( composite );
+    g.drawImage( blurImg, imgX.toInt, imgY.toInt, null );
+    
+    g.setComposite( prevComposite );
+
   }
 }

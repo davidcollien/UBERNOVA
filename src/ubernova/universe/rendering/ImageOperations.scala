@@ -3,6 +3,7 @@ package ubernova.universe.rendering
 import ubernova.universe.geometry.Vector2D
 import java.awt.geom.{AffineTransform, Path2D}
 import java.awt.{Graphics, Image, Graphics2D, Color}
+import java.awt.image.{ConvolveOp, Kernel}
 
 /**
  * Author: David Collien
@@ -21,8 +22,8 @@ object ImageOperations {
     val drawVect:Vector2D = vector.normalised( arrowLength );
     val endVect:Vector2D  = (vector rotatedBy (math.Pi/2.0)).normalise( width/2 );
 
-    val endX:Int = (drawVect.x + x).asInstanceOf[Int];
-    val endY:Int = (drawVect.y + y).asInstanceOf[Int];
+    val endX:Int = (drawVect.x + x).toInt;
+    val endY:Int = (drawVect.y + y).toInt;
 
     val path:Path2D.Float = new Path2D.Float();
     path.moveTo( x, y );
@@ -35,11 +36,25 @@ object ImageOperations {
     g.draw( path );
   }
 
-  def paintRotated( g:Graphics, image:Image, rotation:Double, x:Int, y:Int, imageOffsetX:Int, imageOffsetY:Int ) {
+  def paintScaled( g:Graphics, image:Image, x:Int, y:Int, scale:Double ) = {
+    val g2d:Graphics2D = g.asInstanceOf[Graphics2D];
+
+    val beforeXForm:AffineTransform = g2d.getTransform;
+    val scaledXForm:AffineTransform = beforeXForm.clone( ).asInstanceOf[AffineTransform];
+
+    scaledXForm.scale( scale, scale );
+    g2d.setTransform( scaledXForm );
+
+    g2d.drawImage( image, x, y, null );
+    g2d.setTransform( beforeXForm );
+    
+  }
+
+  def paintRotated( g:Graphics, image:Image, rotation:Double, x:Int, y:Int, imageOffsetX:Int, imageOffsetY:Int ) = {
 		val g2d:Graphics2D = g.asInstanceOf[Graphics2D];
 
 		// save state
-		val beforeXForm:AffineTransform  = g2d.getTransform( );
+		val beforeXForm:AffineTransform  = g2d.getTransform;
 
 		// rotate
 		val rotatedXForm:AffineTransform = beforeXForm.clone( ).asInstanceOf[AffineTransform];

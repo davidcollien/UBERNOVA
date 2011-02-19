@@ -5,7 +5,9 @@ import ubernova.universe.rendering.ShipRender
 import ubernova.universe.geometry.Vector2D
 import ubernova.hangar.spacecraft.Ship
 import java.awt._
+import image.BufferedImage
 import ubernova.universe.backgrounds.Starfield
+import rendering.MotionBlurOp
 
 /**
  * Author: David Collien
@@ -39,7 +41,7 @@ class SpaceView( playersShip:Ship ) extends Canvas {
       dimension.setSize( this.getWidth, this.getHeight );
     }
 
-    val offG:Graphics = offscreen.getGraphics;
+    val offG:Graphics2D = offscreen.getGraphics.asInstanceOf[Graphics2D];
 
     offG.clearRect( 0, 0, dimension.width, dimension.height );
     offG.setColor( new Color( 0, 0, 0 ) );
@@ -53,11 +55,12 @@ class SpaceView( playersShip:Ship ) extends Canvas {
     for ( ship <- ships ) {
       ship.render(
         offG.asInstanceOf[Graphics2D],
-        (scroll.x + midX).asInstanceOf[Int],
-        (scroll.y + midY).asInstanceOf[Int] );
+        (scroll.x + midX),
+        (scroll.y + midY) );
     }
 
     g.drawImage( offscreen, 0, 0, this );
+
   }
 
   def update( ) = {
